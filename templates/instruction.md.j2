@@ -1,0 +1,21 @@
+;; {{ name }}: {{ description }}
+;; Long name: {{ long_name }}
+{%- if funct7 %}
+;; funct7: {{ funct7 }}
+{%- endif %}
+{%- if funct3 %}
+;; funct3: {{ funct3 }}
+{%- endif %}
+;; opcode: {{ opcode }}
+
+(define_insn "{{ name }}"
+  [{% if gcc_operands|length > 1 %}(set {{ gcc_operands[0] }}
+        {% if name == 'orn' %}(ior:SI {{ gcc_operands[1] }}
+                    (not:SI {{ gcc_operands[2] }})){% elif name == 'andn' %}(and:SI {{ gcc_operands[1] }}
+                    (not:SI {{ gcc_operands[2] }})){% elif name == 'xnor' %}(not:SI (xor:SI {{ gcc_operands[1] }} {{ gcc_operands[2] }})){% elif 'or' in name %}(ior:SI {{ gcc_operands[1] }} {{ gcc_operands[2] }}){% elif 'and' in name %}(and:SI {{ gcc_operands[1] }} {{ gcc_operands[2] }}){% elif 'xor' in name %}(xor:SI {{ gcc_operands[1] }} {{ gcc_operands[2] }}){% elif 'add' in name %}(plus:SI {{ gcc_operands[1] }} {{ gcc_operands[2] }}){% elif 'sub' in name %}(minus:SI {{ gcc_operands[1] }} {{ gcc_operands[2] }}){% else %}(unspec:SI [{{ gcc_operands[1] }}{% if gcc_operands|length > 2 %}
+             {{ gcc_operands[2] }}{% endif %}
+         ] UNSPEC_{{ name.upper() }}){% endif %}){% else %}{{ gcc_operands[0] }}{% endif %}]
+  "TARGET_ZBB || TARGET_ZBKB"
+  "{{ name }}\t%0,%1{% if operands|length > 2 %},%2{% endif %}"
+  [(set_attr "type" "{{ instruction_type }}")
+   (set_attr "mode" "SI")])
